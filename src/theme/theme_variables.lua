@@ -26,7 +26,7 @@ Theme.fg_urgent = color["White"]
 Theme.fg_minimize = color["White"]
 
 Theme.useless_gap = dpi(5) -- Change this to 0 if you dont like window gaps
-Theme.border_width = dpi(20) -- Change this to 0 if you dont like borders
+Theme.border_width = dpi(11) -- Change this to 0 if you dont like borders
 Theme.border_normal = color["Grey800"]
 --Theme.border_focus = color["Red"] -- Doesnt work, no idea why; workaround is in signals.lua
 Theme.border_marked = color["Red400"]

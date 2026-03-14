@@ -18,7 +18,7 @@ return function(s, widgets)
     visible = true,
     placement = function(c) awful.placement.top_right(c, { margins = dpi(10) }) end,
     shape = function(cr, width, height)
-      gears.shape.rounded_rect(cr, width, height, 4)
+      gears.shape.rounded_rect(cr, width, height, 5)
     end
   }
 
@@ -26,73 +26,50 @@ return function(s, widgets)
     top = 55
   }
 
-  local segment_palette = {
-    "#2b0c45",
-    "#4c1d95",
-    "#5b21b6",
-    "#6d28d9"
-  }
+  local fallback_colors = { color["Purple500"], color["Purple700"] }
 
-  local function segment_bg_for(index)
-    return segment_palette[((index - 1) % #segment_palette) + 1]
-  end
-
-  local function normalize_widget_colors(widget)
-    local function tint_one(w)
-      if w.bg ~= nil then
-        w.bg = "#00000000"
-      end
-      if w.fg ~= nil then
-        w.fg = color["Purple50"]
-      end
-    end
-
-    tint_one(widget)
-    if widget.get_all_children then
-      for _, child in ipairs(widget:get_all_children()) do
-        tint_one(child)
-      end
-    end
+  local function segment_bg_for(widget, index)
+    return widget.bg or fallback_colors[((index - 1) % #fallback_colors) + 1]
   end
 
   local function create_powerline_segment(widget, index)
-    local current_bg = segment_bg_for(index)
+    local segment_bg = segment_bg_for(widget, index)
 
-    normalize_widget_colors(widget)
+    local left_arrow = wibox.widget {
+      {
+        text = "",
+        align = "center",
+        valign = "center",
+        font = "JetBrainsMono Nerd Font, ExtraBold 24",
+        widget = wibox.widget.textbox
+      },
+      fg = color["Purple500"],
+      bg = "#00000000",
+      widget = wibox.container.background
+    }
+
+    local segment_body = wibox.widget {
+      {
+        widget,
+        left = dpi(8),
+        right = dpi(12),
+        top = dpi(4),
+        bottom = dpi(4),
+        widget = wibox.container.margin
+      },
+      bg = segment_bg,
+      widget = wibox.container.background
+    }
 
     return wibox.widget {
-      {
-        {
-          text = "",
-          align = "center",
-          valign = "center",
-          font = "JetBrainsMono Nerd Font, ExtraBold 30",
-          widget = wibox.widget.textbox
-        },
-        fg = current_bg,
-        bg = "#00000000",
-        forced_width = dpi(26),
-        widget = wibox.container.background
-      },
-      {
-        {
-          widget,
-          left = dpi(10),
-          right = dpi(10),
-          top = dpi(4),
-          bottom = dpi(4),
-          widget = wibox.container.margin
-        },
-        bg = current_bg,
-        widget = wibox.container.background
-      },
+      left_arrow,
+      segment_body,
       layout = wibox.layout.fixed.horizontal
     }
   end
 
   local function prepare_widgets(widget_list)
     local layout = wibox.layout.fixed.horizontal()
-    layout.spacing = -dpi(18)
 
     for i, widget in ipairs(widget_list) do
       layout:add(create_powerline_segment(widget, i))
@@ -100,7 +77,7 @@ return function(s, widgets)
 
     return wibox.widget {
       layout,
-      forced_height = 48,
+      forced_height = 45,
       widget = wibox.container.constraint
     }
   end

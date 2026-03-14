@@ -97,6 +97,7 @@ client.connect_signal(
 client.connect_signal(
   "focus",
   function(c)
+    c.border_width = beautiful.border_width
     c.border_color = "#9C27B0"
   end
 )

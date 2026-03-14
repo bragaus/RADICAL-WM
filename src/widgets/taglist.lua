@@ -24,7 +24,7 @@ local list_update = function(widget, buttons, label, data, objects)
             valign = "center",
             visible = true,
             font = user_vars.font.extrabold,
-            forced_width = dpi(25),
+--            forced_width = dpi(25),
             id = "label",
             widget = wibox.widget.textbox
           },
@@ -36,7 +36,8 @@ local list_update = function(widget, buttons, label, data, objects)
         id = "container",
         layout = wibox.layout.fixed.horizontal
       },
-      fg = color["White"],
+      --fg = color["White"],
+      fg = color["Purple50"],
       shape = function(cr, width, height)
         gears.shape.rounded_rect(cr, width, height, 5)
       end,
@@ -67,13 +68,13 @@ local list_update = function(widget, buttons, label, data, objects)
 
     tag_widget.container.margin.label:set_text(object.index)
     if object.urgent == true then
-      tag_widget:set_bg(color["RedA200"])
-      tag_widget:set_fg(color["Grey900"])
+      tag_widget:set_bg(color["#7a1ea1"])
+      tag_widget:set_fg(color["Purple50"])
     elseif object == awful.screen.focused().selected_tag then
-      tag_widget:set_bg(color["White"])
-      tag_widget:set_fg(color["Grey900"])
+      tag_widget:set_bg(color["#8b5cf6"])
+      tag_widget:set_fg(color["Purple50"])
     else
-      tag_widget:set_bg("#3A475C")
+      tag_widget:set_bg("#2b0c45")
     end
 
     -- Set the icon for each client
@@ -108,9 +109,9 @@ local list_update = function(widget, buttons, label, data, objects)
       function()
         old_bg = tag_widget.bg
         if object == awful.screen.focused().selected_tag then
-          tag_widget.bg = '#dddddd' .. 'dd'
+          tag_widget.bg = '#9b6bffdd'
         else
-          tag_widget.bg = '#3A475C' .. 'dd'
+          tag_widget.bg = '#3f1680dd'
         end
         local w = mouse.current_wibox
         if w then
@@ -124,9 +125,9 @@ local list_update = function(widget, buttons, label, data, objects)
       "button::press",
       function()
         if object == awful.screen.focused().selected_tag then
-          tag_widget.bg = '#bbbbbb' .. 'dd'
+          tag_widget.bg = '#7b44f0dd'
         else
-          tag_widget.bg = '#3A475C' .. 'dd'
+          tag_widget.bg = '#3f1680dd'
         end
       end
     )
@@ -135,9 +136,9 @@ local list_update = function(widget, buttons, label, data, objects)
       "button::release",
       function()
         if object == awful.screen.focused().selected_tag then
-          tag_widget.bg = '#dddddd' .. 'dd'
+          tag_widget.bg = '#9b6bffdd'
         else
-          tag_widget.bg = '#3A475C' .. 'dd'
+          tag_widget.bg = '#3f1680dd'
         end
       end
     )
