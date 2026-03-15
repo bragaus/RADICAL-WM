@@ -56,7 +56,7 @@ user_vars = {
   modkey = "Mod4",
 
   -- place your wallpaper at this path with this name, you could also try to change the path
-  wallpaper = home .. "/.config/awesome/src/assets/fuji.jpg",
+  wallpaper = home .. "/Imagens/vialacta.jpg",
 
   -- Naming scheme for the powermenu, userhost = "user@hostname", fullname = "Firstname Surname", something else ...
   namestyle = "userhost",
@@ -65,7 +65,7 @@ user_vars = {
   kblayout = { "br", "us" },
 
   -- Your filemanager that opens with super+e
-  file_manager = "thunar",
+  file_manager = "nautilus",
 
   -- Screenshot program to make a screenshot when print is hit
   screenshot_program = "flameshot gui",
@@ -84,8 +84,7 @@ user_vars = {
     { "Alacritty", "alacritty", "Alacritty" },
     { "firefox", "firefox", "Firefox" },
     { "discord", "discord", "Discord" },
-    { "Spotify", "flatpak run com.spotify.Client", "Spotify" },
-    { "Thunderbird", "thunderbird", "Thunderbird" },
-    { "Thunar", "thunar", "Dateien" },
+    { "nautilus", "nautilus", "Nautilus" },
+    { "rustdesk", "rustdesk", "RustDesk" } 
   }
 }

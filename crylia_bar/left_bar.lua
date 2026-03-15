@@ -70,19 +70,6 @@ return function(s, widgets)
     return wibox.widget {
       {
         {
-          text = "",
-          align = "center",
-          valign = "center",
-          font = "JetBrainsMono Nerd Font, ExtraBold 30",
-          widget = wibox.widget.textbox
-        },
-        fg = current_bg,
-        bg = "#00000000",
-        forced_width = dpi(26),
-        widget = wibox.container.background
-      },
-      {
-        {
           widget,
           left = dpi(10),
           right = dpi(10),
@@ -91,6 +78,19 @@ return function(s, widgets)
           widget = wibox.container.margin
         },
         bg = current_bg,
+        widget = wibox.container.background
+      },
+      {
+        {
+          text = "",
+          align = "center",
+          valign = "center",
+          font = "JetBrainsMono Nerd Font, ExtraBold 30",
+          widget = wibox.widget.textbox
+        },
+        fg = current_bg,
+        bg = "#00000000",
+        forced_width = dpi(26),
         widget = wibox.container.background
       },
       layout = wibox.layout.fixed.horizontal
@@ -119,4 +119,3 @@ return function(s, widgets)
     layout = wibox.layout.fixed.horizontal
   }
 end
-

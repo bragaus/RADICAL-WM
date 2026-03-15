@@ -14,7 +14,7 @@ require("src.core.signals")
 local icondir = awful.util.getdir("config") .. "src/assets/icons/date/"
 
 -- Returns the date widget
-return function()
+return function(s)
 
   local date_widget = wibox.widget {
     {
@@ -57,6 +57,154 @@ return function()
     widget = wibox.container.background
   }
 
+  local reminders_text = table.concat(
+    {
+      "LEMBRETES E ORGANIZAÇÃO",
+      "• Planejar prioridades da semana",
+      "• Revisar tarefas do dia",
+      "• Registrar ideias importantes",
+      "• Definir próximos passos"
+    },
+    "\n"
+  )
+
+  local year_calendar = wibox.widget {
+    date = os.date("*t"),
+    font = user_vars.font.bold,
+    spacing = dpi(2),
+    week_numbers = true,
+    widget = wibox.widget.calendar.year
+  }
+
+  local reminders_widget = wibox.widget {
+    {
+      {
+        text = reminders_text,
+        align = "left",
+        valign = "top",
+        widget = wibox.widget.textbox
+      },
+      margins = dpi(10),
+      widget = wibox.container.margin
+    },
+    bg = "#2b0c45dd",
+    fg = "#ff8c00",
+    shape = function(cr, width, height)
+      gears.shape.rounded_rect(cr, width, height, 5)
+    end,
+    widget = wibox.container.background
+  }
+
+  local calendar_popup = awful.popup {
+    visible = false,
+    ontop = true,
+    bg = "#00000000",
+    screen = s,
+    shape = function(cr, width, height)
+      gears.shape.rounded_rect(cr, width, height, 8)
+    end,
+    widget = wibox.widget {
+      {
+        {
+          year_calendar,
+          reminders_widget,
+          spacing = dpi(10),
+          layout = wibox.layout.fixed.vertical
+        },
+        margins = dpi(10),
+        widget = wibox.container.margin
+      },
+      bg = "#140a24ee",
+      fg = "#ff8c00",
+      shape = function(cr, width, height)
+        gears.shape.rounded_rect(cr, width, height, 8)
+      end,
+      border_width = dpi(1),
+      border_color = "#6d28d9",
+      widget = wibox.container.background
+    }
+  }
+
+  local function resolve_widget_geo()
+    local geo = mouse.current_widget_geometry
+    local current_wibox = mouse.current_wibox
+
+    if geo and current_wibox then
+      local wgeo = current_wibox:geometry()
+      return {
+        x = wgeo.x + geo.x,
+        y = wgeo.y + geo.y,
+        width = geo.width,
+        height = geo.height,
+        screen = current_wibox.screen
+      }
+    end
+
+    return geo
+  end
+
+  local function find_date_widget_geo_in_current_wibox()
+    local w = mouse.current_wibox
+    if not w or not w.find_widgets then
+      return nil
+    end
+
+    local m = mouse.coords()
+    local wgeo = w:geometry()
+    local hits = w:find_widgets(m.x - wgeo.x, m.y - wgeo.y)
+
+    for _, item in ipairs(hits) do
+      if item.widget == date_widget then
+        return {
+          x = wgeo.x + item.x,
+          y = wgeo.y + item.y,
+          width = item.width,
+          height = item.height,
+          screen = w.screen
+        }
+      end
+    end
+
+    return nil
+  end
+
+  local last_date_geo = nil
+
+  local function place_calendar_popup()
+    local geo = find_date_widget_geo_in_current_wibox() or last_date_geo or resolve_widget_geo()
+
+    calendar_popup.screen = (geo and geo.screen) or s
+
+    if geo and geo.width and geo.height then
+      local popup_geo = calendar_popup:geometry()
+      local workarea = calendar_popup.screen.workarea
+
+      local popup_width = popup_geo.width > 0 and popup_geo.width or dpi(900)
+      local popup_height = popup_geo.height > 0 and popup_geo.height or dpi(700)
+
+      local target_x = geo.x + geo.width - popup_width
+      local target_y = geo.y + geo.height + dpi(6)
+
+      if target_x < workarea.x then
+        target_x = workarea.x
+      elseif target_x + popup_width > (workarea.x + workarea.width) then
+        target_x = workarea.x + workarea.width - popup_width
+      end
+
+      if target_y + popup_height > (workarea.y + workarea.height) then
+        target_y = geo.y - popup_height - dpi(6)
+      end
+
+      calendar_popup.x = target_x
+      calendar_popup.y = target_y
+    else
+      awful.placement.align(
+        calendar_popup,
+        { position = "top_right", margins = { right = dpi(10), top = dpi(60) } }
+      )
+    end
+  end
+
   local set_date = function()
     date_widget.container.date_layout.label:set_text(os.date("%a, %b %d"))
   end
@@ -68,6 +216,7 @@ return function()
     call_now = true,
     callback = function()
       set_date()
+      year_calendar.date = os.date("*t")
     end
   }
 
@@ -77,6 +226,7 @@ return function()
   date_widget:connect_signal(
     "mouse::enter",
     function()
+      last_date_geo = resolve_widget_geo()
       awesome.emit_signal("widget::calendar_osd:stop", true)
     end
   )
@@ -88,6 +238,25 @@ return function()
     end
   )
 
+  date_widget:connect_signal(
+    "button::press",
+    function()
+      if not calendar_popup.visible then
+        last_date_geo = find_date_widget_geo_in_current_wibox() or last_date_geo or resolve_widget_geo()
+        calendar_popup.visible = true
+        place_calendar_popup()
+      else
+        calendar_popup.visible = false
+      end
+    end
+  )
+
+  calendar_popup:connect_signal(
+    "mouse::leave",
+    function()
+      calendar_popup.visible = false
+    end
+  )
+
   return date_widget
 end
-
