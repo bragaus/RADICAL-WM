@@ -21,22 +21,14 @@ return function()
       {
         {
           {
-            {
-              id = "icon",
-              image = gears.color.recolor_image(icondir .. "battery-unknown.svg", "#212121"),
-              widget = wibox.widget.imagebox,
-              resize = false
-            },
-            id = "icon_layout",
-            widget = wibox.container.place
+            visible = false,
+            align = 'center',
+            valign = 'center',
+            id = "charging_indicator",
+            widget = wibox.widget.textbox
           },
-          id = "icon_margin",
-          top = dpi(2),
-          widget = wibox.container.margin
-        },
-        spacing = dpi(10),
+        spacing = dpi(6),
         {
-          visible = false,
           align = 'center',
           valign = 'center',
           id = "label",
@@ -51,7 +43,7 @@ return function()
       widget = wibox.container.margin
     },
     bg = color["Purple200"],
-    fg = color["Grey900"],
+    fg = "#ff8c00",
     shape = function(cr, width, height)
       gears.shape.rounded_rect(cr, width, height, 5)
     end,
@@ -94,6 +86,17 @@ return function()
   local last_battery_check = os.time()
   local notify_critical_battery = true
 
+
+  local set_battery_text = function(text, text_color, charging)
+    local battery_layout = battery_widget.container.battery_layout
+    battery_layout.label:set_markup('<span foreground="' .. text_color .. '⚡' .. text .. '%</span>')
+
+  local set_battery_icon = function(icon_name, icon_color)
+    battery_widget.container.battery_layout.icon_margin.icon_layout.icon:set_image(gears.surface.load_uncached(
+      gears.color.recolor_image(icondir .. icon_name .. '.svg', icon_color)
+    ))
+  end
+
   local battery_warning = function()
     naughty.notification {
       icon = gears.color.recolor_image(icondir .. "battery-alert.svg", color["White"]),
@@ -102,6 +105,20 @@ return function()
       message = "Battery is almost empty",
       urgency = "critical"
     }
+  end
+
+   local battery_colors = {
+    charged = "#ff8c00",
+    charging = "#ff8c00",
+    discharging = color["Purple200"],
+    critical = color["Red200"],
+    unavailable = "#212121"
+  }
+
+  local set_battery_icon = function(icon_name, icon_color)
+    battery_widget.container.battery_layout.icon_margin.icon_layout.icon:set_image(gears.surface.load_uncached(
+      gears.color.recolor_image(icondir .. icon_name .. '.svg', icon_color)
+    ))
   end
 
   local update_battery = function(status)
@@ -114,61 +131,92 @@ return function()
           return
         end
 
-        battery_widget.container.battery_layout.spacing = dpi(5)
-        battery_widget.container.battery_layout.label.visible = true
-        battery_widget.container.battery_layout.label:set_text(battery_percentage .. '%')
-
-        local icon = 'battery'
-
-        if status == 'fully-charged' or status == 'charging' and battery_percentage == 100 then
-          icon = icon .. '-' .. 'charging'
-          battery_widget.container.battery_layout.icon_margin.icon_layout.icon:set_image(gears.surface.load_uncached(
-            gears.color.recolor_image(icondir .. icon .. '.svg', "#212121")))
-          return
+          local normalized_status = status
+        if normalized_status == 'pending-charge' then
+          normalized_status = 'charging'
+        elseif normalized_status == 'pending-discharge' then
+          normalized_status = 'discharging'
         end
 
-        if battery_percentage > 0 and battery_percentage < 10 and status == 'discharging' then
+        --battery_widget.container.battery_layout.spacing = dpi(5)
+        --battery_widget.container.battery_layout.label.visible = true
+        --battery_widget.container.battery_layout.label:set_text(battery_percentage .. '% ')
+
+        local normalized_status = status
+        if normalized_status == 'pending-charge' then
+          normalized_status = 'charging'
+        elseif normalized_status == 'pending-discharge' then
+          normalized_status = 'discharging'
+        end
+
+        battery_widget.container.battery_layout.spacing = dpi(6)
+
+        if normalized_status == 'fully-charged' then
+          notify_critical_battery = true
+          set_battery_text(battery_percentage, battery_colors.charged, true)
+          return
+        end
+ 
+        if status == 'charging' then
+          set_battery_icon('battery-charging', battery_colors.charging)
+              return
+        end
+       
+        if battery_percentage <= 10 and status == 'discharging' then
           icon = icon .. '-' .. 'alert'
           if (os.difftime(os.time(), last_battery_check) > 300 or notify_critical_battery) then
             last_battery_check = os.time()
             notify_critical_battery = false
             battery_warning()
           end
-          battery_widget.container.battery_layout.icon_margin.icon_layout.icon:set_image(gears.surface.load_uncached(
-            gears.color.recolor_image(icondir .. icon .. '.svg', "#212121")))
+          --battery_widget.container.battery_layout.icon_margin.icon_layout.icon:set_image(gears.surface.load_uncached(
+            --gears.color.recolor_image(icondir .. icon .. '.svg', "#ff8c00")))
+            i--set_battery_icon(icon, battery_colors.critical)
+            set_battery_text(battery_percentage, battery_colors.critical, false)
           return
         end
 
-        if battery_percentage > 0 and battery_percentage < 10 then
-          icon = icon .. '-' .. status .. '-' .. 'outline'
-        elseif battery_percentage >= 10 and battery_percentage < 20 then
-          icon = icon .. '-' .. status .. '-' .. '10'
-        elseif battery_percentage >= 20 and battery_percentage < 30 then
-          icon = icon .. '-' .. status .. '-' .. '20'
-        elseif battery_percentage >= 30 and battery_percentage < 40 then
-          icon = icon .. '-' .. status .. '-' .. '30'
-        elseif battery_percentage >= 40 and battery_percentage < 50 then
-          icon = icon .. '-' .. status .. '-' .. '40'
-        elseif battery_percentage >= 50 and battery_percentage < 60 then
-          icon = icon .. '-' .. status .. '-' .. '50'
-        elseif battery_percentage >= 60 and battery_percentage < 70 then
-          icon = icon .. '-' .. status .. '-' .. '60'
-        elseif battery_percentage >= 70 and battery_percentage < 80 then
-          icon = icon .. '-' .. status .. '-' .. '70'
-        elseif battery_percentage >= 80 and battery_percentage < 90 then
-          icon = icon .. '-' .. status .. '-' .. '80'
-        elseif battery_percentage >= 90 and battery_percentage < 100 then
-          icon = icon .. '-' .. status .. '-' .. '90'
-        end
+        notify_critical_battery = true
 
-        battery_widget.container.battery_layout.icon_margin.icon_layout.icon:set_image(gears.surface.load_uncached(
-          gears.color.recolor_image(icondir .. icon .. '.svg', "#212121")))
+--[[
+         if battery_percentage > 0 and battery_percentage < 10 then
+          icon = icon .. '-discharging-outline'
+        elseif battery_percentage >= 10 and battery_percentage < 20 then
+          icon = icon .. '-discharging-10'
+        elseif battery_percentage >= 20 and battery_percentage < 30 then
+          icon = icon .. '-discharging-20'
+        elseif battery_percentage >= 30 and battery_percentage < 40 then
+          icon = icon .. '-discharging-30'
+        elseif battery_percentage >= 40 and battery_percentage < 50 then
+          icon = icon .. '-discharging-40'
+        elseif battery_percentage >= 50 and battery_percentage < 60 then
+          icon = icon .. '-discharging-50'
+        elseif battery_percentage >= 60 and battery_percentage < 70 then
+          icon = icon .. '-discharging-60'
+        elseif battery_percentage >= 70 and battery_percentage < 80 then
+          icon = icon .. '-discharging-70'
+        elseif battery_percentage >= 80 and battery_percentage < 90 then
+          icon = icon .. '-discharging-80'
+        elseif battery_percentage >= 90 and battery_percentage < 100 then
+          icon = icon .. '-discharging-90'
+        else
+          icon = 'battery-outline'
+        end--]]
+
+        --battery_widget.container.battery_layout.icon_margin.icon_layout.icon:set_image(gears.surface.load_uncached(
+          --gears.color.recolor_image(icondir .. icon .. '.svg', "#ff8c00")))
+        local min_opacity = 0.45
+        local max_opacity = 1
+        local opacity = min_opacity + ((100 - battery_percentage) / 100) * (max_opacity - min_opacity)
+        local discharging_color = gears.color.change_opacity(battery_colors.discharging, opacity)
+
+        set_battery_icon(icon, discharging_color)
 
       end
     )
   end
 
-  Hover_signal(battery_widget, color["Purple200"], color["Grey900"])
+  Hover_signal(battery_widget, color["Purple200"], "#ff8c00")
 
   battery_widget:connect_signal(
     'button::press',
@@ -193,8 +241,12 @@ return function()
         battery_widget.container.battery_layout.spacing = dpi(0)
         battery_widget.container.battery_layout.label.visible = false
         battery_tooltip:set_text('No battery found')
-        battery_widget.container.battery_layout.icon_margin.icon_layout.icon:set_image(gears.surface.load_uncached(
-          gears.color.recolor_image(icondir .. 'battery-off' .. '.svg', "#212121")))
+                battery_widget.container.battery_layout.charging_indicator.visible = false
+        battery_widget.container.battery_layout.label:set_markup('<span foreground="' .. battery_colors.unavailable .. '">N/A</span>')
+
+        --battery_widget.container.battery_layout.icon_margin.icon_layout.icon:set_image(gears.surface.load_uncached(
+          --gears.color.recolor_image(icondir .. 'battery-off' .. '.svg', "#ff8c00")))
+           --set_battery_icon('battery-off', battery_colors.unavailable)
       end
       update_battery(status)
     end

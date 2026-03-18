@@ -179,8 +179,16 @@ return function(s)
       local popup_geo = calendar_popup:geometry()
       local workarea = calendar_popup.screen.workarea
 
-      local popup_width = popup_geo.width > 0 and popup_geo.width or dpi(900)
-      local popup_height = popup_geo.height > 0 and popup_geo.height or dpi(700)
+      local popup_width = popup_geo.width
+      local popup_height = popup_geo.height
+
+      if (not popup_width) or popup_width < dpi(400) then
+        popup_width = dpi(900)
+      end
+
+      if (not popup_height) or popup_height < dpi(250) then
+        popup_height = dpi(700)
+      end
 
       local target_x = geo.x + geo.width - popup_width
       local target_y = geo.y + geo.height + dpi(6)
@@ -197,6 +205,7 @@ return function(s)
 
       calendar_popup.x = target_x
       calendar_popup.y = target_y
+      awful.placement.no_offscreen(calendar_popup, { honor_workarea = true })
     else
       awful.placement.align(
         calendar_popup,
@@ -245,6 +254,10 @@ return function(s)
         last_date_geo = find_date_widget_geo_in_current_wibox() or last_date_geo or resolve_widget_geo()
         calendar_popup.visible = true
         place_calendar_popup()
+        gears.timer.delayed_call(function()
+          last_date_geo = find_date_widget_geo_in_current_wibox() or last_date_geo or resolve_widget_geo()
+          place_calendar_popup()
+        end)
       else
         calendar_popup.visible = false
       end
