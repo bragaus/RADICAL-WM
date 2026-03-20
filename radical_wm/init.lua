@@ -14,7 +14,7 @@ awful.screen.connect_for_each_screen(
   awful.tag(
     { "PLANO-WEB3", "VIBE-STUDING", "GHOST-SIGN", "NEW-ICHIMOKU" },
     s,
-    user_vars.layouts[6]
+    user_vars.layouts[12]
   )
 --[[ uma das coisas mais tristes na vida e chegar ao fim e olhar oara traz com remorso, sabendo que voce poderia teer sido feito e tido muito mais --]]
   require("src.modules.powermenu")(s)
